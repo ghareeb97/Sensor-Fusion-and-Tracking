@@ -22,6 +22,8 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 import misc.params as params 
+import math
+from scipy.stats import chi2
 
 class Association:
     '''Data association class with single nearest neighbor association and gating based on Mahalanobis distance'''
@@ -43,12 +45,25 @@ class Association:
         self.unassigned_tracks = [] # reset lists
         self.unassigned_meas = []
         
-        if len(meas_list) > 0:
-            self.unassigned_meas = [0]
-        if len(track_list) > 0:
-            self.unassigned_tracks = [0]
-        if len(meas_list) > 0 and len(track_list) > 0: 
-            self.association_matrix = np.matrix([[0]])
+        N = len(track_list) # N tracks
+        M = len(meas_list) # M measurements
+        
+        if M > 0:
+            self.unassigned_meas = list(range(M))
+        if N > 0:
+            self.unassigned_tracks = list(range(N))
+        if M > 0 and N > 0:
+            # initialize association matrix 
+            self.association_matrix = np.inf * np.ones((N, M)) 
+            # loop over all tracks and all measurements to set up association matrix
+            for i in range(N): 
+                track = track_list[i]
+                for j in range(M):
+                    meas = meas_list[j]
+                    dist = self.MHD(track, meas, KF)
+                    if self.gating(dist, sensor = meas.sensor):
+                        self.association_matrix[i, j] = dist
+
         
         ############
         # END student code
@@ -63,14 +78,28 @@ class Association:
         # - return this track and measurement
         ############
 
-        # the following only works for at most one track and one measurement
-        update_track = 0
-        update_meas = 0
+       # find closest track and measurement for next update
+        A = self.association_matrix
+        if np.min(A) == np.inf:
+            return np.nan, np.nan
+
+        # get indices of minimum entry
+        ij_min = np.unravel_index(np.argmin(A, axis=None), A.shape) 
+        ind_track = ij_min[0]
+        ind_meas = ij_min[1]
+
+        # delete row and column for next update
+        A = np.delete(A, ind_track, 0) 
+        A = np.delete(A, ind_meas, 1)
+        self.association_matrix = A
+        
+        # update this track with this measurement
+        update_track = self.unassigned_tracks[ind_track] 
+        update_meas = self.unassigned_meas[ind_meas]
         
         # remove from list
         self.unassigned_tracks.remove(update_track) 
         self.unassigned_meas.remove(update_meas)
-        self.association_matrix = np.matrix([])
             
         ############
         # END student code
@@ -82,7 +111,26 @@ class Association:
         # TODO Step 3: return True if measurement lies inside gate, otherwise False
         ############
         
-        pass    
+        df = None
+        gate_val = None
+        if sensor.name == 'lidar':
+            #While fine tuning the algorihm, we find that it's better to have a larger gate threshold for lidar 
+            #which means current lidar noise is a bit underestimated
+            df = 2 
+            gate_val = params.gating_threshold
+        
+        if sensor.name == 'camera':
+            gate_val = 0.95
+            df = 1
+        x= MHD * MHD
+        per = chi2.cdf(x, df)
+        if sensor.name == 'lidar':
+            print("lidar chisqr = {}".format(per))
+        if per <  gate_val:
+            return True
+        else:
+            return False
+        
         
         ############
         # END student code
@@ -93,7 +141,12 @@ class Association:
         # TODO Step 3: calculate and return Mahalanobis distance
         ############
         
-        pass
+        # calc Mahalanobis distance
+        H = meas.sensor.get_H(track.x)
+        gamma = meas.z - meas.sensor.get_hx(track.x)
+        S = H*track.P*H.transpose() + meas.R
+        MHD = gamma.transpose()*np.linalg.inv(S)*gamma # Mahalanobis distance formula
+        return MHD
         
         ############
         # END student code

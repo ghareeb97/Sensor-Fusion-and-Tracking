@@ -12,6 +12,7 @@
 
 # imports
 import numpy as np
+import math
 
 # add project directory to python path to enable relative imports
 import os
@@ -48,7 +49,19 @@ class Sensor:
         # otherwise False.
         ############
 
-        return True
+        pos_veh = np.ones((4, 1)) # homogeneous coordinates
+        pos_veh[0:3] = x[0:3] 
+        pos_sens = self.veh_to_sens*pos_veh # transform from vehicle to lidar coordinates
+        x,y,z = np.squeeze(pos_sens.A)[:3]
+        if self.name == "lidar":
+            angle = math.atan2(y, x)
+        else:
+            angle = math.atan2(y, x)
+#             print("camera fov={}".format(angle))
+        if angle >= self.fov[0] and angle <=self.fov[1]:
+            return True
+        else:
+            return False
         
         ############
         # END student code
@@ -71,7 +84,22 @@ class Sensor:
             # - return h(x)
             ############
 
-            pass
+            # transform from vehicle to lidar coordinates
+            pos_veh = np.ones((4, 1)) # homogeneous coordinates
+            pos_veh[0:3] = x[0:3] 
+            
+            pos_sens = self.veh_to_sens*pos_veh 
+            x, y, z = pos_sens[0:3]
+            # - project from camera to image coordinates
+            if x <= 0:
+                z_pred = np.array([-100, -100])
+            else:   
+                u = self.c_i - self.f_i * y/x
+                v = self.c_j - self.f_j * z/x
+                z_pred = np.array([u, v])
+                
+            z_pred = np.matrix(z_pred.reshape(-1, 1))
+            return z_pred
         
             ############
             # END student code
@@ -154,9 +182,19 @@ class Measurement:
             ############
             # TODO Step 4: initialize camera measurement including z, R, and sensor 
             ############
-
-            pass
-        
+            sigma_cam_i = params.sigma_cam_i
+            sigma_cam_j = params.sigma_cam_j
+            self.z = np.zeros((sensor.dim_meas, 1)) # measurement vector
+            self.z[0] = z[0]
+            self.z[1] = z[1]
+            self.sensor = sensor # sensor that generated this measurement
+            self.R = np.matrix([[sigma_cam_i**2, 0             ], # measurement noise covariance matrix
+                                [0,              sigma_cam_j**2]])
+            # From loop_over_dataset.py
+            # z = [box.center_x, box.center_y, box.width, box.length]
+            # meas_list_cam = camera.generate_measurement(cnt_frame, z, meas_list_cam)
+            self.width = z[2]
+            self.length = z[3]
             ############
             # END student code
             ############ 
