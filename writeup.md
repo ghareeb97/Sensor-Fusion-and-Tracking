@@ -1,6 +1,7 @@
 
 # SDCND : Sensor Fusion and Tracking
 
+# MidTerm Project
 ## Compute Lidar Point-Cloud from Range Image
 ### Visualizing range image channels
 ![Range Image](range_image_channels.png)
@@ -28,11 +29,8 @@
 ![](performance_metrics.png)
 ![](precision-recall.png)
 
-# Writeup: Track 3D-Objects Over Time
+# Writeup: Track 3D-Objects Over Time (Final Project)
 
-Please use this starter template to answer the following questions:
-
-### 1. Write a short recap of the four tracking steps and what you implemented there (filter, track management, association, camera fusion). Which results did you achieve? Which part of the project was most difficult for you to complete, and why?
 ## Step 1: Implementing an Extended Kalman Filter
 EKF has 3 main steps prediction, measurement and update.
 - First was adding the representation of the state of the system which consist of process model and velocity.
@@ -40,25 +38,35 @@ EKF has 3 main steps prediction, measurement and update.
 - for the update function measurment matrix (H), Gamma residual , covariance of the residual (S), kalman gain(K), state update and covariance update all were calculated to update the state x and covariance P.
 
 ## Step 2: Implementing the track management to initialize and delete tracks, set a track state and a track score.
-
+- initializing new track from inassigned measurements
+- Transform the unassigned measurement from sensor to vehicle coordinates
+- manage track score based on the threshold to keep or delete the track
+- handle updated track to change the state wether it's comfirmed or tentative using the confimed threshold
 ## Step 3: Implementing a single nearest neighbor data association to associate measurements to tracks.
-
+- Data association for the track and measurement using Mahalanobid distance 
 ## Step 4: Implementing the nonlinear camera measurement model.
+- Use non-linear function to transform KF state into camera and image space.
+![](final_proj_outputs/SensorFusion.png)
+![](final_proj_outputs/RMSE2.png)
 
-### 2. Do you see any benefits in camera-lidar fusion compared to lidar-only tracking (in theory and in your concrete results)? 
-In Theory:
+## Benefits in camera-lidar fusion vs lidar-only tracking
 - **Accuracy**: Cameras and lidar sensors have different strengths and weaknesses. Cameras are better at detecting objects and edges, while lidar sensors are better at measuring depth. By fusing the data from both sensors, it is possible to create a more accurate 3D model of the environment.
 - **Reliability**: Cameras and lidar sensors are both susceptible to noise and errors. By fusing the data from both sensors, it is possible to reduce the impact of these errors.
 - **Robustness**: Cameras and lidar sensors can be affected by different environmental conditions. For example, cameras can be blinded by bright sunlight, while lidar sensors can be affected by rain or snow. By fusing the data from both sensors, it is possible to create a more robust system that can operate in a variety of conditions.
 
-
-### 3. Which challenges will a sensor fusion system face in real-life scenarios? Did you see any of these challenges in the project?
-Challenges in real-life scenarios:
+### Challenges in real-life scenarios:
 - **Data fusion**: Sensor fusion systems must be able to fuse data from multiple sensors in real time. This can be a challenging task, as the data from different sensors may be in different formats, have different resolutions, and be subject to different levels of noise.
 - **Environmental conditions**: Sensor fusion systems must be able to operate in a variety of environmental conditions, including rain, snow, fog, and bright sunlight. These conditions can make it difficult for sensors to collect accurate data.
 - **Motion**: Sensor fusion systems must be able to operate in a variety of motion conditions, including acceleration, deceleration, and turning. These conditions can cause the sensors to produce inaccurate data.
 - **Malfunction**: Sensor fusion systems must be able to handle sensor malfunctions. If a sensor fails, the sensor fusion system must be able to continue operating without the failed sensor.
-- **Security**: Sensor fusion systems must be secure from cyberattacks. Attackers could attempt to corrupt the data from the sensors or disrupt the communication between the sensors and the sensor fusion system.
 
-### 4. Can you think of ways to improve your tracking results in the future?
+
+## Challenges 
+- one of the simple yet significant challenge was continuing the project on the midterm loop_over_dataset.py file as I have encountered diffrent and not satisfying results like the RMSE for more than 3 tracks and the tracking method did not work good for all the cars appearing.
+
+**Before downloading and using the loop_over_dataset.py from the final project workspace**
+![](final_proj_outputs/RMSE.png)
+
+**After**
+![](final_proj_outputs/RMSE2.png)
 
