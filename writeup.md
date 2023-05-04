@@ -36,12 +36,16 @@ EKF has 3 main steps prediction, measurement and update.
 - First was adding the representation of the state of the system which consist of process model and velocity.
 - working on the prediction function the following matrices were needed (System matrix **F**, process noise covariance **Q**) both these matrices where implemented using the saved parameters in params.py.
 - for the update function measurment matrix (H), Gamma residual , covariance of the residual (S), kalman gain(K), state update and covariance update all were calculated to update the state x and covariance P.
+![](RSME-Step1.png)
+![](step1.png)
 
 ## Step 2: Implementing the track management to initialize and delete tracks, set a track state and a track score.
 - initializing new track from inassigned measurements
 - Transform the unassigned measurement from sensor to vehicle coordinates
 - manage track score based on the threshold to keep or delete the track
 - handle updated track to change the state wether it's comfirmed or tentative using the confimed threshold
+![](step2.png)
+
 ## Step 3: Implementing a single nearest neighbor data association to associate measurements to tracks.
 - Data association for the track and measurement using Mahalanobid distance 
 ## Step 4: Implementing the nonlinear camera measurement model.
@@ -69,4 +73,8 @@ EKF has 3 main steps prediction, measurement and update.
 
 **After**
 ![](final_proj_outputs/RMSE2.png)
+
+### final output after review
+![](RSME-after-review.png)
+
 

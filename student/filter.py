@@ -53,11 +53,16 @@ class Filter:
 
         dt = self.dt
         q = self.q
-        q1 = dt * q
-        Q = np.zeros((self.dim_state, self.dim_state))
-        np.fill_diagonal(Q, q1)
+        q1 = ((dt**3)/3) * q 
+        q2 = ((dt**2)/2) * q 
+        q3 = dt * q 
         
-        return np.matrix(Q)
+        return np.matrix([[q1, 0,  0,  q2, 0,  0 ],
+                          [0,  q1, 0,  0,  q2, 0 ],
+                          [0,  0,  q1, 0,  0,  q2],
+                          [q2, 0,  0,  q3, 0,  0 ],
+                          [0,  q2, 0,  0,  q3, 0 ],
+                          [0,  0,  q2, 0,  0,  q3]])
         
         ############
         # END student code
